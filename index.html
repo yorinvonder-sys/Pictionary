@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geschiedenis Pictionary</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: none;
+        }
+        .canvas-container {
+            width: 100%;
+            max-width: 900px;
+            aspect-ratio: 16 / 9;
+        }
+        canvas {
+            cursor: crosshair;
+        }
+        .color-swatch {
+            transition: transform 0.1s ease-in-out;
+        }
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-5xl bg-white rounded-2xl shadow-lg p-6 md:p-8">
+        <div class="text-center mb-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800">Geschiedenis Pictionary</h1>
+            <p class="text-gray-500 mt-2">Teken het begrip en laat de klas raden!</p>
+        </div>
+
+        <!-- Game Info Display -->
+        <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-4 mb-6 flex justify-center items-center text-center">
+             <div class="flex flex-col items-center gap-1">
+                <label for="timeInput" class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Tijd (seconden)</label>
+                <input type="number" id="timeInput" value="90" min="10" max="300" class="text-2xl font-bold text-gray-800 bg-transparent text-center w-24 border-b-2 border-gray-300 focus:outline-none focus:border-indigo-500">
+            </div>
+        </div>
+
+        <!-- Canvas and Controls -->
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Controls -->
+            <div class="w-full lg:w-1/4 order-2 lg:order-1 bg-gray-50 p-4 rounded-lg shadow-sm">
+                <h3 class="font-semibold mb-4 text-center">Tekeninstellingen</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kleur</label>
+                        <div id="colorPalette" class="grid grid-cols-5 gap-2 mb-3">
+                            <!-- Rij 1 -->
+                            <button data-color="#000000" class="color-swatch w-7 h-7 rounded-full cursor-pointer border-2 border-gray-300 ring-2 ring-offset-1 ring-indigo-500" style="background-color: #000000;"></button>
+                            <button data-color="#ffffff" class="color-swatch w-7 h-7 rounded-full cursor-pointer border-2 border-gray-300" style="background-color: #ffffff;"></button>
+                            <button data-color="#ef4444" class="color-swatch w-7 h-7 rounded-full cursor-pointer border-2 border-gray-300" style="background-color: #ef4444;"></button>
+                            <button data-color="#3b82f6" class="color-swatch w-7 h-7 rounded-full cursor-pointer border-2 border-gray-300" style="background-color: #3b82f6;"></button>
+                            <button data-color="#22c55e" class="color-swatch w-7 h-7 rounded-full cursor-pointer border-2 border-gray-300" style="background-color: #22c55e;"></button>
+                            <!-- Rij 2 -->
+                            <button data-color="#eab308" class="color-swatch w-7 h-7 rounded-full cursor-pointer border-2 border-gray-300" style="background-color: #eab308;"></button>
+                            <button data-color="#f97316" class="color-swatch w-7 h-7 rounded-full cursor-pointer border-2 border-gray-300" style="background-color: #f97316;"></button>
+                            <button data-color="#8b5cf6" class="color-swatch w-7 h-7 rounded-full cursor-pointer border-2 border-gray-300" style="background-color: #8b5cf6;"></button>
+                            <button data-color="#ec4899" class="color-swatch w-7 h-7 rounded-full cursor-pointer border-2 border-gray-300" style="background-color: #ec4899;"></button>
+                             <button data-color="#78350f" class="color-swatch w-7 h-7 rounded-full cursor-pointer border-2 border-gray-300" style="background-color: #78350f;"></button>
+                            <!-- Rij 3 -->
+                            <button data-color="#06b6d4" class="color-swatch w-7 h-7 rounded-full cursor-pointer border-2 border-gray-300" style="background-color: #06b6d4;"></button>
+                            <button data-color="#84cc16" class="color-swatch w-7 h-7 rounded-full cursor-pointer border-2 border-gray-300" style="background-color: #84cc16;"></button>
+                            <button data-color="#6b7280" class="color-swatch w-7 h-7 rounded-full cursor-pointer border-2 border-gray-300" style="background-color: #6b7280;"></button>
+                            <button data-color="#be185d" class="color-swatch w-7 h-7 rounded-full cursor-pointer border-2 border-gray-300" style="background-color: #be185d;"></button>
+                            <button data-color="#15803d" class="color-swatch w-7 h-7 rounded-full cursor-pointer border-2 border-gray-300" style="background-color: #15803d;"></button>
+                        </div>
+                        <input type="color" id="colorPicker" value="#000000" class="w-full h-10 p-1 border border-gray-300 rounded-md cursor-pointer">
+                    </div>
+                    <div>
+                        <label for="brushSize" class="block text-sm font-medium text-gray-700">Penseelgrootte: <span id="brushSizeValue">5</span></label>
+                        <input type="range" id="brushSize" min="1" max="50" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <button id="undoButton" class="w-full bg-yellow-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors">Laatste Actie Ongedaan</button>
+                    <button id="clearButton" class="w-full bg-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors">Alles Wissen</button>
+                </div>
+                <div class="mt-6 pt-6 border-t">
+                     <h3 class="font-semibold mb-4 text-center">Spelbediening</h3>
+                     <div class="space-y-3">
+                        <button id="resetButton" class="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">Reset</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drawing Canvas -->
+            <div class="w-full lg:w-3/4 order-1 lg:order-2 canvas-container bg-white rounded-lg overflow-hidden shadow-lg border">
+                <canvas id="drawingCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('drawingCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            const colorPicker = document.getElementById('colorPicker');
+            const colorPalette = document.getElementById('colorPalette');
+            const brushSize = document.getElementById('brushSize');
+            const brushSizeValue = document.getElementById('brushSizeValue');
+            const clearButton = document.getElementById('clearButton');
+            const undoButton = document.getElementById('undoButton');
+            const resetButton = document.getElementById('resetButton');
+            
+            const timeInput = document.getElementById('timeInput');
+
+            let timerId = null;
+            let timeLeft = 90;
+
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+            
+            let drawHistory = [];
+            let currentHistoryIndex = -1;
+
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                const { width, height } = container.getBoundingClientRect();
+                canvas.width = width;
+                canvas.height = height;
+                clearCanvas(false); 
+                drawHistory = [];
+                currentHistoryIndex = -1;
+                saveCanvasState();
+            }
+
+            function getEventCoordinates(event) {
+                const rect = canvas.getBoundingClientRect();
+                if (event.touches && event.touches.length > 0) {
+                    return {
+                        x: event.touches[0].clientX - rect.left,
+                        y: event.touches[0].clientY - rect.top
+                    };
+                }
+                return {
+                    x: event.clientX - rect.left,
+                    y: event.clientY - rect.top
+                };
+            }
+
+            function startDrawing(e) {
+                e.preventDefault();
+                isDrawing = true;
+                const { x, y } = getEventCoordinates(e);
+                [lastX, lastY] = [x, y];
+            }
+
+            function draw(e) {
+                if (!isDrawing) return;
+                e.preventDefault();
+                const { x, y } = getEventCoordinates(e);
+
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(x, y);
+                ctx.strokeStyle = colorPicker.value;
+                ctx.lineWidth = brushSize.value;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.stroke();
+
+                [lastX, lastY] = [x, y];
+            }
+
+            function stopDrawing() {
+                if (!isDrawing) return;
+                isDrawing = false;
+                saveCanvasState();
+            }
+
+            function clearCanvas(confirm = true) {
+                if (confirm) {
+                   console.log("Clearing canvas");
+                }
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            
+            function saveCanvasState() {
+                currentHistoryIndex++;
+                if (currentHistoryIndex < drawHistory.length) {
+                    drawHistory = drawHistory.slice(0, currentHistoryIndex);
+                }
+                drawHistory.push(canvas.toDataURL());
+            }
+
+            function undoLastAction() {
+                if (currentHistoryIndex > 0) {
+                    currentHistoryIndex--;
+                    const image = new Image();
+                    image.src = drawHistory[currentHistoryIndex];
+                    image.onload = () => {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(image, 0, 0);
+                    };
+                }
+            }
+
+            function resetGame() {
+                clearCanvas(false);
+                drawHistory = [];
+                currentHistoryIndex = -1;
+                saveCanvasState();
+
+                clearInterval(timerId);
+
+                let gameDuration = parseInt(timeInput.value, 10);
+                if (isNaN(gameDuration) || gameDuration < 10 || gameDuration > 300) {
+                    gameDuration = 90;
+                    timeInput.value = gameDuration;
+                }
+                
+                timeLeft = gameDuration;
+                timeInput.value = timeLeft;
+                timeInput.disabled = true;
+
+                timerId = setInterval(() => {
+                    timeLeft--;
+                    timeInput.value = timeLeft;
+                    if (timeLeft <= 0) {
+                        clearInterval(timerId);
+                        timeInput.disabled = false;
+                        timeInput.value = gameDuration;
+                    }
+                }, 1000);
+            }
+
+            function selectColor(color) {
+                colorPicker.value = color;
+                document.querySelectorAll('.color-swatch').forEach(swatch => {
+                    swatch.classList.remove('ring-2', 'ring-offset-1', 'ring-indigo-500');
+                    if (swatch.dataset.color === color) {
+                        swatch.classList.add('ring-2', 'ring-offset-1', 'ring-indigo-500');
+                    }
+                });
+            }
+            
+            // Event Listeners
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+
+            canvas.addEventListener('touchstart', startDrawing);
+            canvas.addEventListener('touchmove', draw);
+            canvas.addEventListener('touchend', stopDrawing);
+
+            clearButton.addEventListener('click', () => {
+                clearCanvas(true);
+                drawHistory = [];
+                currentHistoryIndex = -1;
+                saveCanvasState();
+            });
+            undoButton.addEventListener('click', undoLastAction);
+            resetButton.addEventListener('click', resetGame);
+
+            brushSize.addEventListener('input', (e) => {
+                brushSizeValue.textContent = e.target.value;
+            });
+            
+            colorPalette.addEventListener('click', (e) => {
+                if (e.target.dataset.color) {
+                    selectColor(e.target.dataset.color);
+                }
+            });
+
+            colorPicker.addEventListener('input', (e) => {
+                selectColor(e.target.value);
+            });
+            
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Initial setup
+            resizeCanvas();
+        });
+    </script>
+</body>
+</html>
+
+
